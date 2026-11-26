@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Capacity Calculator - Multi Sprint</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 4px;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        .settings-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            padding: 8px 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .help-text {
+            font-size: 11px;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        .sprints-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .sprint-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background: #fff;
+        }
+
+        .sprint-card.sprint-a {
+            border-left: 4px solid #667eea;
+        }
+
+        .sprint-card.sprint-b {
+            border-left: 4px solid #51cf66;
+        }
+
+        .sprint-card.sprint-c {
+            border-left: 4px solid #ffa94d;
+        }
+
+        .sprint-card.sprint-d {
+            border-left: 4px solid #ff8787;
+        }
+
+        .sprint-header {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .sprint-header .title {
+            font-size: 15px;
+            color: #333;
+        }
+
+        .sprint-header .weeks {
+            font-size: 12px;
+            color: #999;
+            font-weight: 400;
+        }
+
+        .team-list {
+            display: grid;
+            gap: 6px;
+            margin-bottom: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .team-row {
+            display: grid;
+            grid-template-columns: 1.5fr 50px 45px;
+            gap: 6px;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .team-row input {
+            width: 100%;
+            padding: 5px 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .member-name {
+            padding: 5px 6px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .vacation-input {
+            text-align: center;
+            padding: 5px 4px !important;
+        }
+
+        .vacation-label {
+            font-size: 10px;
+            color: #999;
+            text-align: center;
+        }
+
+        .reserve-row {
+            display: grid;
+            grid-template-columns: 1.5fr 50px 45px;
+            gap: 6px;
+            align-items: center;
+            font-size: 12px;
+            padding-top: 8px;
+            border-top: 1px dashed #ddd;
+        }
+
+        .reserve-row label {
+            margin: 0;
+            font-size: 12px;
+        }
+
+        .reserve-row input {
+            width: 100%;
+            padding: 5px 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .import-status {
+            margin-top: 10px;
+            font-size: 12px;
+            text-align: center;
+            min-height: 16px;
+        }
+
+        .import-status.ok { color: #2f9e44; }
+        .import-status.error { color: #e03131; }
+
+        .sprint-results {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .result-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .result-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .result-value {
+            color: #667eea;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        button {
+            font-size: 13px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-calculate {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-calculate:hover {
+            background: #5568d3;
+        }
+
+        .btn-export {
+            background: #339af0;
+            color: white;
+        }
+
+        .btn-export:hover {
+            background: #1c7ed6;
+        }
+
+        .btn-import {
+            background: #20c997;
+            color: white;
+        }
+
+        .btn-import:hover {
+            background: #12b886;
+        }
+
+        .btn-template {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .btn-template:hover {
+            background: #dee2e6;
+        }
+
+        .btn-reset {
+            background: #ccc;
+            color: #333;
+        }
+
+        .btn-reset:hover {
+            background: #bbb;
+        }
+
+        @media (max-width: 768px) {
+            .sprints-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Team Capacity Calculator</h1>
+        <p class="subtitle">Calculate your team's capacity per sprint with vacation days</p>
+
+        <!-- Settings Section -->
+        <div class="settings-section">
+            <div class="settings-grid">
+                <div class="form-group">
+                    <label for="spDaysConversion">Story Points per Day</label>
+                    <input type="number" id="spDaysConversion" value="0.5" step="0.1" min="0.1">
+                    <span class="help-text">SP = available days × this value</span>
+                </div>
+                <div class="form-group">
+                    <label for="workdaysPerWeek">Work Days Per Week</label>
+                    <input type="number" id="workdaysPerWeek" value="5" min="1" max="7">
+                    <span class="help-text">Usually 5</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sprints Container -->
+        <div class="sprints-container" id="sprintsContainer"></div>
+
+        <!-- Actions -->
+        <div class="actions">
+            <button class="btn-calculate" onclick="calculateAllSprints()">Calculate All</button>
+            <button class="btn-export" onclick="exportAllResults()">📥 Export CSV</button>
+            <button class="btn-import" onclick="document.getElementById('holidaysFile').click()">📤 Import Holidays CSV</button>
+            <button class="btn-template" onclick="downloadHolidaysTemplate()">📄 Holidays Template</button>
+            <button class="btn-reset" onclick="resetCalculator()">Reset</button>
+            <input type="file" id="holidaysFile" accept=".csv,text/csv" style="display:none" onchange="importHolidaysCSV(this)">
+        </div>
+        <div class="import-status" id="importStatus"></div>
+    </div>
+
+    <script>
+        // Sprint definitions
+        const sprints = [
+            { id: 'a', name: 'Sprint A', weeks: '48-49', days: 10 },
+            { id: 'b', name: 'Sprint B', weeks: '50-51', days: 10 },
+            { id: 'c', name: 'Sprint C', weeks: '52-53', days: 10 },
+            { id: 'd', name: 'Sprint D', weeks: '1-2', days: 10 }
+        ];
+
+        // Default team
+        let teamData = [
+            { name: 'Person 1' },
+            { name: 'Person 2' },
+            { name: 'Person 3' },
+            { name: 'Person 4' },
+            { name: 'Person 5' },
+            { name: 'Person 6' },
+            { name: 'Person 7' }
+        ];
+
+        // Store vacation days per sprint per person
+        let vacationData = {};
+
+        // Bump the key version when the default data changes, so stale saved values are not reused
+        const STORAGE_KEY = 'anonymousVacationData_v1';
+
+        // Vacation + public holiday days per person per sprint (counted from the holiday plan image)
+        const defaultVacationData = {
+            'Person 1': { a: 2, b: 0, c: 7, d: 5 },
+            'Person 2': { a: 2, b: 1, c: 10, d: 5 },
+            'Person 3': { a: 2, b: 0, c: 6, d: 3 },
+            'Person 4': { a: 2, b: 0, c: 3, d: 3 },
+            'Person 5': { a: 6, b: 0, c: 10, d: 5 },
+            'Person 6': { a: 5, b: 1, c: 6, d: 0 },
+            'Person 7': { a: 2, b: 0, c: 7, d: 3 }
+        };
+
+        function initializeVacationData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            vacationData = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(defaultVacationData));
+        }
+
+        function saveVacationData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(vacationData));
+        }
+
+        // Percentage of capacity reserved for unplanned work, per sprint
+        const RESERVE_KEY = 'anonymousReserveData_v1';
+        let reserveData = { a: 0, b: 0, c: 0, d: 0 };
+
+        function initializeReserveData() {
+            const saved = localStorage.getItem(RESERVE_KEY);
+            if (saved) reserveData = { ...reserveData, ...JSON.parse(saved) };
+        }
+
+        function updateReserve(sprintId, value) {
+            const pct = Math.min(100, Math.max(0, parseFloat(value) || 0));
+            reserveData[sprintId] = pct;
+            localStorage.setItem(RESERVE_KEY, JSON.stringify(reserveData));
+            calculateAllSprints();
+        }
+
+        function renderSprints() {
+            const container = document.getElementById('sprintsContainer');
+            container.innerHTML = '';
+
+            sprints.forEach(sprint => {
+                const card = document.createElement('div');
+                card.className = `sprint-card sprint-${sprint.id}`;
+                
+                let teamHTML = '';
+                teamData.forEach((member, idx) => {
+                    const vacDays = vacationData[member.name]?.[sprint.id] || 0;
+                    teamHTML += `
+                        <div class="team-row">
+                            <div class="member-name" title="${member.name}">${member.name}</div>
+                            <input type="number" class="vacation-input" value="${vacDays}" min="0" max="10"
+                                   onchange="updateVacation('${member.name}', '${sprint.id}', this.value)">
+                            <div class="vacation-label">days</div>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="sprint-header">
+                        <div class="title">${sprint.name}</div>
+                        <div class="weeks">Weeks ${sprint.weeks}</div>
+                    </div>
+                    <div class="team-list">
+                        ${teamHTML}
+                    </div>
+                    <div class="reserve-row">
+                        <label for="reserve-${sprint.id}" title="Share of capacity kept for unpredicted work">Reserve (unplanned)</label>
+                        <input type="number" id="reserve-${sprint.id}" value="${reserveData[sprint.id] || 0}" min="0" max="100" step="1"
+                               onchange="updateReserve('${sprint.id}', this.value)">
+                        <div class="vacation-label">%</div>
+                    </div>
+                    <div class="sprint-results">
+                        <div class="result-row">
+                            <span class="result-label">Person-Days:</span>
+                            <span class="result-value" id="result-days-${sprint.id}">0.0</span>
+                        </div>
+                        <div class="result-row">
+                            <span class="result-label">Total SP:</span>
+                            <span class="result-value" id="result-total-sp-${sprint.id}">0.0</span>
+                        </div>
+                        <div class="result-row">
+                            <span class="result-label">Reserved SP:</span>
+                            <span class="result-value" id="result-reserve-sp-${sprint.id}">0.0</span>
+                        </div>
+                        <div class="result-row">
+                            <span class="result-label">Story Points:</span>
+                            <span class="result-value" id="result-sp-${sprint.id}">0.0</span>
+                        </div>
+                        <div class="result-row">
+                            <span class="result-label">Avg/Person:</span>
+                            <span class="result-value" id="result-avg-${sprint.id}">0.0</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateVacation(memberName, sprintId, value) {
+            if (!vacationData[memberName]) {
+                vacationData[memberName] = { a: 0, b: 0, c: 0, d: 0 };
+            }
+            vacationData[memberName][sprintId] = parseFloat(value) || 0;
+            saveVacationData();
+            calculateAllSprints();
+        }
+
+        function calculateSprint(sprintId) {
+            const sprint = sprints.find(s => s.id === sprintId);
+            const spDaysConversion = parseFloat(document.getElementById('spDaysConversion').value);
+            const workdaysPerWeek = parseFloat(document.getElementById('workdaysPerWeek').value);
+
+            // Calculate workdays in sprint (2 weeks)
+            const workdaysInSprint = 2 * workdaysPerWeek;
+
+            // Calculate total person-days
+            let totalPersonDays = 0;
+            teamData.forEach(member => {
+                const vacDays = vacationData[member.name]?.[sprintId] || 0;
+                const availableDays = workdaysInSprint - vacDays;
+                totalPersonDays += Math.max(0, availableDays);
+            });
+
+            // Convert to story points
+            // SP = person-days × story points per day
+            const totalSP = totalPersonDays * spDaysConversion;
+            const reservePct = reserveData[sprintId] || 0;
+            const reservedSP = totalSP * reservePct / 100;
+            const capacitySP = totalSP - reservedSP;
+            const avgSP = teamData.length > 0 ? capacitySP / teamData.length : 0;
+
+            // Update results
+            document.getElementById(`result-days-${sprintId}`).textContent = totalPersonDays.toFixed(1);
+            document.getElementById(`result-total-sp-${sprintId}`).textContent = totalSP.toFixed(1);
+            document.getElementById(`result-reserve-sp-${sprintId}`).textContent = reservedSP.toFixed(1);
+            document.getElementById(`result-sp-${sprintId}`).textContent = capacitySP.toFixed(1);
+            document.getElementById(`result-avg-${sprintId}`).textContent = avgSP.toFixed(1);
+
+            return { sprintId, totalPersonDays, totalSP, reservePct, reservedSP, capacitySP, avgSP };
+        }
+
+        function calculateAllSprints() {
+            const results = sprints.map(sprint => calculateSprint(sprint.id));
+            window.lastCalculation = results;
+        }
+
+        function exportAllResults() {
+            if (!window.lastCalculation) {
+                alert('Please calculate all sprints first');
+                return;
+            }
+
+            const spDaysConversion = parseFloat(document.getElementById('spDaysConversion').value);
+            const workdaysPerWeek = parseFloat(document.getElementById('workdaysPerWeek').value);
+
+            let csv = 'Team Capacity Calculator - Multi Sprint Report\n';
+            csv += `Calculated: ${new Date().toLocaleString()}\n\n`;
+            csv += `Settings\n`;
+            csv += `Work Days Per Week,${workdaysPerWeek}\n`;
+            csv += `Story Points per Day,${spDaysConversion}\n\n`;
+
+            sprints.forEach(sprint => {
+                csv += `\n${sprint.name} (Weeks ${sprint.weeks})\n`;
+                csv += `Team Member,Vacation Days\n`;
+                teamData.forEach(member => {
+                    const vacDays = vacationData[member.name]?.[sprint.id] || 0;
+                    csv += `${member.name},${vacDays}\n`;
+                });
+                
+                const result = window.lastCalculation.find(r => r.sprintId === sprint.id);
+                if (result) {
+                    csv += `\nCapacity Results\n`;
+                    csv += `Total Person-Days,${result.totalPersonDays.toFixed(1)}\n`;
+                    csv += `Total Story Points,${result.totalSP.toFixed(1)}\n`;
+                    csv += `Reserve for Unplanned (%),${result.reservePct}\n`;
+                    csv += `Reserved Story Points,${result.reservedSP.toFixed(1)}\n`;
+                    csv += `Available Story Points,${result.capacitySP.toFixed(1)}\n`;
+                    csv += `Average per Person,${result.avgSP.toFixed(1)}\n`;
+                }
+            });
+
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv));
+            element.setAttribute('download', `team-capacity-all-sprints-${new Date().toISOString().split('T')[0]}.csv`);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        function setImportStatus(message, type) {
+            const el = document.getElementById('importStatus');
+            el.textContent = message;
+            el.className = `import-status ${type}`;
+        }
+
+        function normalizeName(name) {
+            return name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+        }
+
+        // Minimal CSV parser: auto-detects , ; or tab delimiter and supports quoted fields
+        function parseCSV(text) {
+            text = text.replace(/^\uFEFF/, '');
+            const firstLine = text.split(/\r?\n/)[0] || '';
+            const delimiter = [',', ';', '\t']
+                .map(d => ({ d, n: firstLine.split(d).length }))
+                .sort((x, y) => y.n - x.n)[0].d;
+
+            const rows = [];
+            let row = [], field = '', inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i];
+                if (inQuotes) {
+                    if (ch === '"' && text[i + 1] === '"') { field += '"'; i++; }
+                    else if (ch === '"') inQuotes = false;
+                    else field += ch;
+                } else if (ch === '"') {
+                    inQuotes = true;
+                } else if (ch === delimiter) {
+                    row.push(field); field = '';
+                } else if (ch === '\n' || ch === '\r') {
+                    if (ch === '\r' && text[i + 1] === '\n') i++;
+                    row.push(field); field = '';
+                    rows.push(row); row = [];
+                } else {
+                    field += ch;
+                }
+            }
+            row.push(field);
+            rows.push(row);
+            return rows.filter(r => r.some(cell => cell.trim() !== ''));
+        }
+
+        // Expected format: header "Name,Sprint A,Sprint B,Sprint C,Sprint D", then one row per person
+        function importHolidaysCSV(input) {
+            const file = input.files[0];
+            input.value = '';
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onerror = () => setImportStatus('Could not read the file.', 'error');
+            reader.onload = () => {
+                const rows = parseCSV(reader.result);
+                if (rows.length < 2) {
+                    setImportStatus('CSV is empty. Expected a header row and one row per person.', 'error');
+                    return;
+                }
+
+                const sprintColumns = {};
+                rows[0].forEach((header, idx) => {
+                    const match = header.trim().match(/^(?:sprint\s*)?([a-d])(?![a-z])/i);
+                    if (idx > 0 && match) sprintColumns[match[1].toLowerCase()] = idx;
+                });
+                if (Object.keys(sprintColumns).length === 0) {
+                    setImportStatus('No sprint columns found. Use headers like: Name, Sprint A, Sprint B, Sprint C, Sprint D.', 'error');
+                    return;
+                }
+
+                const maxDays = 2 * (parseFloat(document.getElementById('workdaysPerWeek').value) || 5);
+                const membersByName = {};
+                teamData.forEach(m => { membersByName[normalizeName(m.name)] = m.name; });
+
+                let updatedPeople = 0;
+                const unknown = [], invalid = [];
+                rows.slice(1).forEach(cells => {
+                    const rawName = (cells[0] || '').trim();
+                    const memberName = membersByName[normalizeName(rawName)];
+                    if (!memberName) { unknown.push(rawName); return; }
+
+                    const updates = {};
+                    for (const [sprintId, idx] of Object.entries(sprintColumns)) {
+                        const raw = (cells[idx] || '').trim().replace(',', '.');
+                        if (raw === '') continue;
+                        const value = Number(raw);
+                        if (!Number.isFinite(value) || value < 0) {
+                            invalid.push(`${rawName} / Sprint ${sprintId.toUpperCase()}`);
+                            continue;
+                        }
+                        updates[sprintId] = Math.min(value, maxDays);
+                    }
+                    vacationData[memberName] = { ...(vacationData[memberName] || { a: 0, b: 0, c: 0, d: 0 }), ...updates };
+                    updatedPeople++;
+                });
+
+                saveVacationData();
+                renderSprints();
+                calculateAllSprints();
+
+                const notes = [];
+                if (unknown.length) notes.push(`unknown names skipped: ${unknown.join(', ')}`);
+                if (invalid.length) notes.push(`invalid values skipped: ${invalid.join(', ')}`);
+                const message = `Imported holidays for ${updatedPeople} people.` + (notes.length ? ` (${notes.join('; ')})` : '');
+                setImportStatus(message, updatedPeople > 0 && !notes.length ? 'ok' : 'error');
+            };
+            reader.readAsText(file);
+        }
+
+        function downloadHolidaysTemplate() {
+            let csv = 'Name,' + sprints.map(s => s.name).join(',') + '\n';
+            teamData.forEach(member => {
+                csv += `${member.name},` + sprints.map(s => vacationData[member.name]?.[s.id] || 0).join(',') + '\n';
+            });
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv));
+            element.setAttribute('download', 'team-holidays.csv');
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        function resetCalculator() {
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(RESERVE_KEY);
+            location.reload();
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            initializeVacationData();
+            initializeReserveData();
+            renderSprints();
+            calculateAllSprints();
+            ['spDaysConversion', 'workdaysPerWeek'].forEach(id =>
+                document.getElementById(id).addEventListener('input', calculateAllSprints));
+        });
+    </script>
+</body>
+</html>
